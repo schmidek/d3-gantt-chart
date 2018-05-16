@@ -1,6 +1,6 @@
 {
-  "name": "d3-gantt-chart",
-  "version": "0.1",
+  "name": "d3-gantt-progress-chart",
+  "version": "0.1.0",
   "description": "Gantt chart built using d3",
   "main": "build/index.js",
   "scripts": {
