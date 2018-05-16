@@ -15,7 +15,7 @@ let createGanttChart = function (selector) {
     var timeDomainEnd;
     var taskTypes = [];
     var width = document.body.clientWidth;
-    var tickFormat = "%H:%M";
+    var tickFormat = null;
     var ticks = 4;
     var minBarHeight = 24;
     var maxBarHeight = 36;
@@ -67,17 +67,17 @@ let createGanttChart = function (selector) {
             .paddingOuter(0.1);
 
         var xAxis = d3.axisBottom(x)
-                .tickFormat(d3.timeFormat(tickFormat))
-                //.tickSubdivide(true)
                 .tickSize(-getHeight())
                 .ticks(ticks);
+        if(tickFormat)
+          xAxis.tickFormat(d3.timeFormat(tickFormat));
 
         var xAxis_2 = d3.axisTop(x)
-                .tickFormat(d3.timeFormat(tickFormat))
-                //.tickSubdivide(true)
                 .tickSize(-getHeight())
                 .ticks(ticks);
-
+        if(tickFormat)
+            xAxis_2.tickFormat(d3.timeFormat(tickFormat));
+      
 
         var yAxis = d3.axisLeft(y)
                 .tickSize(chartWidth)
@@ -158,20 +158,19 @@ let createGanttChart = function (selector) {
 
         var mouseoverBar = function(taskName){
             ganttChartGroup.selectAll(`rect[data-task="${taskName}"]`).classed("hovered",true);
-            ganttChartGroup.selectAll(`path[data-tasks*="${taskName}"]`).classed("hovered",true);
+            ganttChartGroup.selectAll(`path[data-tasks*=",${taskName},"]`).classed("hovered",true);
             let node = ganttChartGroup.select(`rect[data-task="${taskName}"]`).node();
             tooltip.show.apply(node, [lookup(taskName)]);
         }
         var mouseoutBar = function(taskName){
             ganttChartGroup.selectAll(`rect[data-task="${taskName}"]`).classed("hovered",false);
-            ganttChartGroup.selectAll(`path[data-tasks*="${taskName}"]`).classed("hovered",false);
+            ganttChartGroup.selectAll(`path[data-tasks*=",${taskName},"]`).classed("hovered",false);
             let node = ganttChartGroup.select(`rect[data-task="${taskName}"]`).node();
             tooltip.hide.apply(node, [lookup(taskName)]);
         }
 
         var customYAxis = function(g){
             g.call(yAxis);
-            //g.select(".domain").remove();
             g.selectAll(".tick line")
               .attr("x1", -1*margin.left)
               .attr("x2", chartWidth)
@@ -187,10 +186,6 @@ let createGanttChart = function (selector) {
         svg.append("g")
             .attr("class", "y axis")
             .call(customYAxis);
-            //.selectAll("text")
-            //.style("text-anchor", "start")
-            //.attr("transform", `translate(-25, 0)`);
-
 
         svg.append("clipPath")
             .attr("id", "clip")
@@ -231,7 +226,7 @@ let createGanttChart = function (selector) {
                     ganttChartGroup
                       .append("path")
                       .attr("d", `M ${depX} ${depY} q ${0} ${myY-depY} ${myX-depX} ${myY-depY}`)
-                      .attr("data-tasks", [d.taskName, depName])
+                      .attr("data-tasks", ","+[d.taskName, depName].join(",")+",")
                       .attr("stroke", depData.isOnCriticalPath && d.isOnCriticalPath ? "#B71C1C" : "black")
                       .attr("stroke-width", 2)
                       .attr("fill", "none");
@@ -249,7 +244,7 @@ let createGanttChart = function (selector) {
             .attr("ry",5)
             .attr("data-task", function(d){ return d.taskName; })
             .attr("height", function (d) { return y.bandwidth(); })
-            .attr("width", function (d) { return (x(d.endDate) - x(d.startDate)); })
+            .attr("width", function (d) { return Math.max(x(d.endDate) - x(d.startDate),5); })
             //.attr("clip-path", "url(#clip)");
             .on('mouseover', function(data){
                 mouseoverBar(data.taskName);
