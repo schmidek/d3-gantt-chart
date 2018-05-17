@@ -23,7 +23,7 @@ let createGanttChart = function (selector) {
 
     function gantt(tasks) {
 
-        var chartWidth = width - margin.right - margin.left - 5;
+        var chartWidth = width - margin.right - margin.left;
 
         var taskTypes = tasks.map(t => t.taskName);
 
@@ -156,21 +156,22 @@ let createGanttChart = function (selector) {
               return t; 
           });
 
-        var mouseoverBar = function(taskName){
+        var mouseoverBar = function(taskName, node){
             ganttChartGroup.selectAll(`rect[data-task="${taskName}"]`).classed("hovered",true);
             ganttChartGroup.selectAll(`path[data-tasks*=",${taskName},"]`).classed("hovered",true);
-            let node = ganttChartGroup.select(`rect[data-task="${taskName}"]`).node();
             tooltip.show.apply(node, [lookup(taskName)]);
         }
-        var mouseoutBar = function(taskName){
+        var mouseoutBar = function(taskName, node){
             ganttChartGroup.selectAll(`rect[data-task="${taskName}"]`).classed("hovered",false);
             ganttChartGroup.selectAll(`path[data-tasks*=",${taskName},"]`).classed("hovered",false);
-            let node = ganttChartGroup.select(`rect[data-task="${taskName}"]`).node();
             tooltip.hide.apply(node, [lookup(taskName)]);
         }
 
         var customYAxis = function(g){
             g.call(yAxis);
+            g.append("path")
+              .attr("stroke", "#000")
+              .attr("d", `M-${margin.left},0V${getHeight()}`);
             g.selectAll(".tick line")
               .attr("x1", -1*margin.left)
               .attr("x2", chartWidth)
@@ -179,8 +180,8 @@ let createGanttChart = function (selector) {
             g.selectAll(".tick text")
               .attr("x", -4)
               .attr("dy", 4)
-              .on('mouseover', mouseoverBar)
-              .on('mouseout', mouseoutBar);
+              .on('mouseover', function(name){ return mouseoverBar(name,this); })
+              .on('mouseout', function(name){ return mouseoutBar(name,this); });
         }
 
         svg.append("g")
@@ -247,10 +248,10 @@ let createGanttChart = function (selector) {
             .attr("width", function (d) { return Math.max(x(d.endDate) - x(d.startDate),5); })
             //.attr("clip-path", "url(#clip)");
             .on('mouseover', function(data){
-                mouseoverBar(data.taskName);
+                mouseoverBar(data.taskName, this);
             })
             .on('mouseout', function(data){
-                mouseoutBar(data.taskName);
+                mouseoutBar(data.taskName, this);
             })
             .on("click",
                 function (data) {
