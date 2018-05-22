@@ -182,6 +182,13 @@ let createGanttChart = function (selector) {
               .attr("dy", 4)
               .on('mouseover', function(name){ return mouseoverBar(name,this); })
               .on('mouseout', function(name){ return mouseoutBar(name,this); });
+            if(onClickBar){
+                g.selectAll(".tick text").on("click",
+                    function (data) {
+                        onClickBar(lookup(data));
+                    })
+                .attr("class", "clickable");
+            }
         }
 
         svg.append("g")

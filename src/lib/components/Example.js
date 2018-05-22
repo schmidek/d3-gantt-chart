@@ -39,6 +39,8 @@ class GanttChart extends React.Component {
         right: 10,
         bottom: 20,
         left: 50
+      }).onClickBar(function(data){
+        console.log(data);
       });
     ganttChart(tasks);
   }
